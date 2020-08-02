@@ -1,0 +1,38 @@
+# Differences between different affix files
+
+diff --suppress-common-lines ./dictionaries/en-GB/index.aff ./dictionaries/en-AU/index.aff | wc -l
+> 0
+diff --suppress-common-lines ./dictionaries/en-GB/index.aff ./dictionaries/en/index.aff | wc -l
+> 0
+
+No differences. Reassuring that Collins is unlikely to include many modifications.
+
+# Differences between different dictionary words
+
+Total size of GB dictionary
+
+cat ./dictionaries/en-GB/index.dic | wc -l
+> 49560
+
+diff --suppress-common-lines ./dictionaries/en-GB/index.dic ./dictionaries/en/index.dic | wc -l
+> 4196
+
+~8.4% of total GB dictionary
+
+diff --suppress-common-lines ./dictionaries/en-GB/index.dic ./dictionaries/en-AU/index.dic | wc -l
+> 516
+
+~1% of total GB dictionary
+
+## Are there differences between affixes for the same word across dictionaries?
+
+Inspection of GB -> US dictionaries indicates this is true, e.g. wool/M -> wool/MNX (in the US – woolen/woolens, although this is already explicit in the dictionary!)
+
+No. of words where spelling is the same but suffixes are different –
+
+expr 4196 - $(diff ./scratch/en-GB-cut-1.txt ./scratch/en-cut-1.txt | wc -l)
+> 422
+
+So there aren't too many suffix differences between the UK and US dictionaries, currently.
+
+It seems fair to expect there to be fewer still between en-GB and Collins.
