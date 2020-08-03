@@ -1,0 +1,15 @@
+.App {
+  width: 100vw;
+}
+
+.row {
+  display: flex;
+}
+
+.col {
+  padding: 0 10px;
+}
+
+.col-right {
+  margin-left: auto;
+}
