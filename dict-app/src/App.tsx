@@ -16,6 +16,8 @@ type AffixEntry = {
   stripChars: string;
   affix: string;
   regex: string;
+  raw: string;
+  lineNo: number;
 };
 
 const entries: DictionaryEntry[] = lines
@@ -28,9 +30,10 @@ const entries: DictionaryEntry[] = lines
 
 const affixes = aff
   .split("\n")
-  .filter((line) => line.substr(1, 3).includes("FX"))
+  .map((line, index) => [line, index + 1] as [string, number])
+  .filter(([line, _]) => line.substr(1, 3).includes("FX"))
   .reduce(
-    ({ isCombineable, affixes }, line) => {
+    ({ isCombineable, affixes }, [line, lineNo]) => {
       const combineableChar = line.substr(6, 7);
       const isAffixHeader = ["Y", "N"].includes(combineableChar);
 
@@ -45,7 +48,15 @@ const affixes = aff
       const [type, key, stripChars, affix, regex] = line
         .split(" ")
         .filter((_) => _);
-      const newAffix: AffixEntry = { type, key, stripChars, affix, regex };
+      const newAffix: AffixEntry = {
+        type,
+        key,
+        stripChars,
+        affix,
+        regex,
+        raw: line,
+        lineNo,
+      };
 
       return {
         isCombineable,
@@ -105,12 +116,15 @@ function App() {
           </div>
           <div className="col col-right">
             <h3>All affixes</h3>
-            {affixes.map(({ type, key, stripChars, affix, regex }) => (
-              <p key={`${key}-${regex}`}>{`${type}
-              ${key}
-              ${stripChars}
-              ${affix}
-              ${regex || ""}`}</p>
+            {affixes.map(({ type, key, stripChars, affix, regex, lineNo }) => (
+              <div key={`${key}-${regex}`}>
+                <span className="Affix__line-no">{lineNo}</span>
+                {`${type}
+                ${key}
+                ${stripChars}
+                ${affix}
+                ${regex || ""}`}
+              </div>
             ))}
           </div>
         </div>
@@ -125,23 +139,27 @@ function Word({
   lineNo: index,
   searchStr,
 }: DictionaryEntry & { searchStr: string }) {
-  const [isOpen, setIsOpen] = useState(true);
   const searchStrIndex = word.indexOf(searchStr);
   const searchPrefix = word.slice(0, searchStrIndex);
-  const searchSuffix = word.slice(searchStrIndex + searchStr.length, word.length);
+  const searchSuffix = word.slice(
+    searchStrIndex + searchStr.length,
+    word.length
+  );
   return (
-    <div className="Word" onClick={() => setIsOpen(!isOpen)} key={word}>
+    <div className="Word">
       <p>
         {searchPrefix}
         <span className="Word__search-match">{searchStr}</span>
         {searchSuffix}
         <span className="Word__meta">
           &nbsp;/&nbsp;
-          <span>{affChars.length ? `Affixes: ${affChars.join("")}, ` : ""}</span>
-          <span>Line: {index}</span>
+          <span>L{index}</span>
+          <span>
+            {affChars.length ? `, Affixes: ${affChars.join("")}` : ""}
+          </span>
         </span>
       </p>
-      {isOpen && <div>{renderAffixesFromEntry({ word, affChars, lineNo: index })}</div>}
+      {renderAffixesFromEntry({ word, affChars, lineNo: index })}
     </div>
   );
 }
@@ -151,12 +169,18 @@ function renderAffixesFromEntry({ word }: DictionaryEntry) {
   if (!affs) return null;
 
   const tableBody = affs.flatMap((aff: any) =>
-    Array.from(aff).flatMap(([rule, entries]: any) => {
-      const renderedRule = renderRule(rule);
-      return entries.map((entry: any) => (
+    Array.from(aff).flatMap(([rule, entries]: any) =>
+      entries.map((entry: any) => (
         <tr key={entry.newWord}>
           <td className="Affix__new-word">{entry.newWord}</td>
-          <td className="Affix__rule-affix">{renderedRule} </td>
+          <td className="Affix__rule-line">
+            L{getLineNumberFromRawAffixLine(entry.entry?.subline)}
+          </td>
+          <td className="Affix__rule-affix">{rule.type}</td>
+          <td className="Affix__rule-code">{rule.ruleCode}</td>
+          <td className="Affix__rule-combineable">
+            {rule.combineable ? "combineable" : ""}
+          </td>
           <td className="Affix__rule-add">
             {entry.entry.add && `+${entry.entry.add}`}
           </td>
@@ -167,14 +191,17 @@ function renderAffixesFromEntry({ word }: DictionaryEntry) {
             {entry.entry?.match?.toString()}
           </td>
         </tr>
-      ));
-    })
+      ))
+    )
   );
 
   return (
     <table>
       <thead>
         <tr>
+          <th></th>
+          <th></th>
+          <th></th>
           <th></th>
           <th></th>
           <th></th>
@@ -187,11 +214,7 @@ function renderAffixesFromEntry({ word }: DictionaryEntry) {
   );
 }
 
-const renderRule = (rule: any) => (
-  <span className="Affix__rule">
-    {rule.type}
-    {rule.combineable ? ", combineable" : ""}
-  </span>
-);
+const getLineNumberFromRawAffixLine = (rawAffixLine: string) =>
+  affixes.find((_) => _.raw === rawAffixLine)?.lineNo;
 
 export default App;
