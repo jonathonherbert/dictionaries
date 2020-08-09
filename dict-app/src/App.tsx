@@ -58,9 +58,15 @@ const filterEntries = (searchStr: string) => {
       ? entries.filter(({word}) => word.includes(searchStr))
       : entries
   const firstSearchChar = searchStr.substr(0, 1)
-  return filteredEntries.sort(({word}) =>
-    word.substr(0, 1) === firstSearchChar ? -1 : 0
-  )
+  return filteredEntries.sort(({word: wordA}, {word: wordB }) => {
+    if (wordA === searchStr) {
+      return -1;
+    }
+    if (wordA.substr(0, 1) === firstSearchChar && (wordB.substr(0, 1) !== firstSearchChar)) {
+      return -1;
+    }
+    return wordA.length < wordB.length ? -1 : 0;
+  })
 }
 
 function App() {

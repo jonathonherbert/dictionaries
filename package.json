@@ -21,7 +21,6 @@
     "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)",
     "Thomas Beverley <tom.beverley101@gmail.com>"
   ],
-  "dependencies": {},
   "devDependencies": {
     "bail": "^1.0.0",
     "bcp-47": "^1.0.0",
