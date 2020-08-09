@@ -9,8 +9,6 @@ const aff = raw('../../dictionaries/en-GB/index.aff')
 const [count, ...lines] = dict.split('\n')
 const typo = new Typo('en_GB', aff, dict)
 
-;(window as any).typo = typo
-
 type Entry = {word: string; affChars: string[]; index: number}
 type Affix = {
   type: string
