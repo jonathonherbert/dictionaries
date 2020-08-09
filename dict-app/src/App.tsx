@@ -1,12 +1,15 @@
 import React, {useState} from 'react'
-import logo from './logo.svg'
 import './App.css'
+import Typo from 'typo-js'
 import raw from 'raw.macro'
 
 const dict = raw('../../dictionaries/en-GB/index.dic')
 const aff = raw('../../dictionaries/en-GB/index.aff')
 
 const [count, ...lines] = dict.split('\n')
+const typo = new Typo('en_GB', aff, dict)
+
+;(window as any).typo = typo
 
 type Entry = {word: string; affChars: string[]; index: number}
 type Affix = {
@@ -66,7 +69,11 @@ function App() {
   return (
     <>
       <div className="App">
-        <h2>Dictionary search</h2>
+        <div className="row">
+          <div className="col">
+            <h2>Hunspell dictionary search</h2>
+          </div>
+        </div>
         <div className="row">
           <div className="col">
             <h3>{count} entries</h3>
@@ -75,16 +82,16 @@ function App() {
               value={searchStr}
               onChange={(e) => setSearchStr(e.target.value)}
             ></input>
-            {sortedEntries.slice(0, 10).map(Word)}
+            {sortedEntries.slice(0, 10).map(entry => <Word key={entry.index} {...entry} /> )}
           </div>
           <div className="col col-right">
-            <h3>Affixes</h3>
+            <h3>All affixes</h3>
             {affixes.map(({type, key, stripChars, affix, regex}) => (
               <p key={`${key}-${regex}`}>{`${type}
               ${key}
               ${stripChars}
               ${affix}
-              ${regex}`}</p>
+              ${regex || ''}`}</p>
             ))}
           </div>
         </div>
@@ -97,18 +104,62 @@ function Word({word, affChars, index}: Entry) {
   const [isOpen, setIsOpen] = useState(true)
   return (
     <div onClick={() => setIsOpen(!isOpen)} key={word}>
-      <p>{`${index}: ${word} ${affChars ? `/ ${affChars}` : ''}`}</p>
-      {isOpen && <div>{getAffixesFromEntry({word, affChars, index})}</div>}
+      <p>
+        <strong>{`${index}: ${word} ${
+          affChars ? `/ ${affChars}` : ''
+        }`}</strong>
+      </p>
+      {isOpen && <div>{renderAffixesFromEntry({word, affChars, index})}</div>}
     </div>
   )
 }
 
-function getAffixesFromEntry({word, affChars, index}: Entry) {
-  const affs = affChars
-    .map((affChar) => affixes.find(({key}) => key === affChar))
-    .filter((_) => _)
+function renderAffixesFromEntry({word}: Entry) {
+  const affs = typo.ruleToAffixMap.get(word)
+  if (!affs) return null
 
-  return (affs as Affix[]).map((_) => Object.values(_).join(' '))
+  const tableBody = affs.flatMap((aff: any) =>
+    Array.from(aff).flatMap(([rule, entries]: any) => {
+      const renderedRule = renderRule(rule)
+      return entries.map((entry: any) => (
+        <tr key={entry.newWord}>
+          <td className="Affix__new-word">{entry.newWord}</td>
+          <td className="Affix__rule-affix">{renderedRule} </td>
+          <td className="Affix__rule-add">
+            {entry.entry.add && `+${entry.entry.add}`}
+          </td>
+          <td className="Affix__rule-remove">
+            {entry.entry.remove && `-${entry.entry.remove}`}
+          </td>
+          <td className="Affix__rule-match">
+            {entry.entry?.match?.toString()}
+          </td>
+        </tr>
+      ))
+    })
+  )
+
+  return (
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>{tableBody}</tbody>
+    </table>
+  )
 }
+
+const renderRule = (rule: any) => (
+  <span className="Affix__rule">
+    {rule.type}
+    {rule.combineable ? ', combineable' : ''}
+  </span>
+)
 
 export default App

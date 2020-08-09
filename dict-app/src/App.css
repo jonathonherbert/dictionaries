@@ -1,5 +1,6 @@
 .App {
   width: 100vw;
+  max-width: 800px;
 }
 
 .row {
@@ -12,4 +13,16 @@
 
 .col-right {
   margin-left: auto;
+  padding-left: 100px;
+}
+
+.Affix__new-word {
+  min-width: 150px;
+}
+
+.Affix__rule-affix,
+.Affix__rule-add,
+.Affix__rule-remove,
+.Affix__rule-match {
+  color: gray;
 }
