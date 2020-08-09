@@ -9,8 +9,8 @@ const aff = raw(`../../dictionaries/en-GB/index.aff`);
 const [count, ...lines] = dict.split("\n");
 const typo = new Typo("en_GB", aff, dict);
 
-type Entry = { word: string; affChars: string[]; index: number };
-type Affix = {
+type DictionaryEntry = { word: string; affChars: string[]; index: number };
+type AffixEntry = {
   type: string;
   key: string;
   stripChars: string;
@@ -18,7 +18,7 @@ type Affix = {
   regex: string;
 };
 
-const entries: Entry[] = lines
+const entries: DictionaryEntry[] = lines
   .map((entry, index) => {
     const [word, affChars] = entry.split("/");
     return { word, affChars: (affChars || "").split(""), index };
@@ -32,22 +32,26 @@ const affixes = aff
     ({ isCombineable, affixes }, line) => {
       const combineableChar = line.substr(6, 7);
       const isAffixHeader = ["Y", "N"].includes(combineableChar);
+
       if (isAffixHeader) {
+        // Use the affix header to carry the combineable state to the next iteration.
         return {
           isCombineable: combineableChar,
           affixes,
         };
       }
+
       const [type, key, stripChars, affix, regex] = line
         .split(" ")
         .filter((_) => _);
-      const newAffix = { type, key, stripChars, affix, regex, isCombineable };
+      const newAffix: AffixEntry = { type, key, stripChars, affix, regex };
+
       return {
         isCombineable,
         affixes: [...affixes, newAffix],
       };
     },
-    { isCombineable: "N", affixes: [] as Affix[] }
+    { isCombineable: "N", affixes: [] as AffixEntry[] }
   ).affixes;
 
 const filterEntries = (searchStr: string) => {
@@ -58,14 +62,19 @@ const filterEntries = (searchStr: string) => {
   const firstSearchChar = searchStr.substr(0, 1);
   return filteredEntries.sort(({ word: wordA }, { word: wordB }) => {
     if (wordA === searchStr) {
+      // Exact match – hoist
       return -1;
     }
+
     if (
       wordA.substr(0, 1) === firstSearchChar &&
       wordB.substr(0, 1) !== firstSearchChar
     ) {
+      // Begins with first search char - hoist
       return -1;
     }
+
+    // Smaller matches first
     return wordA.length < wordB.length ? -1 : 0;
   });
 };
@@ -90,7 +99,7 @@ function App() {
               onChange={(e) => setSearchStr(e.target.value)}
             ></input>
             {sortedEntries.slice(0, 10).map((entry) => (
-              <Word key={entry.index} {...entry} />
+              <Word key={entry.index} {...entry} searchStr={searchStr} />
             ))}
           </div>
           <div className="col col-right">
@@ -109,21 +118,34 @@ function App() {
   );
 }
 
-function Word({ word, affChars, index }: Entry) {
+function Word({
+  word,
+  affChars,
+  index,
+  searchStr,
+}: DictionaryEntry & { searchStr: string }) {
   const [isOpen, setIsOpen] = useState(true);
+  const searchStrIndex = word.indexOf(searchStr);
+  const searchPrefix = word.slice(0, searchStrIndex);
+  const searchSuffix = word.slice(searchStrIndex + searchStr.length, word.length);
   return (
-    <div onClick={() => setIsOpen(!isOpen)} key={word}>
+    <div className="Word" onClick={() => setIsOpen(!isOpen)} key={word}>
       <p>
-        <strong>{`${index}: ${word} ${
-          affChars ? `/ ${affChars}` : ""
-        }`}</strong>
+        {searchPrefix}
+        <span className="Word__search-match">{searchStr}</span>
+        {searchSuffix}
+        <span className="Word__meta">
+          &nbsp;/&nbsp;
+          <span>{affChars.length ? `Affixes: ${affChars.join("")}, ` : ""}</span>
+          <span>L{index}</span>
+        </span>
       </p>
       {isOpen && <div>{renderAffixesFromEntry({ word, affChars, index })}</div>}
     </div>
   );
 }
 
-function renderAffixesFromEntry({ word }: Entry) {
+function renderAffixesFromEntry({ word }: DictionaryEntry) {
   const affs = typo.ruleToAffixMap.get(word);
   if (!affs) return null;
 

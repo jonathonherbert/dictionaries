@@ -31,3 +31,11 @@ body {
 .Affix__rule-match {
   color: gray;
 }
+
+.Word__meta {
+  color: gray;
+}
+
+.Word__search-match {
+  border-bottom: 2px solid orange;
+}
