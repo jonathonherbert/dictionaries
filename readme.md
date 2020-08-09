@@ -3,7 +3,7 @@
 Collection of normalized and easily installable [hunspell][] dictionaries.
 Useful with [`nodehun`][nodehun], [`nspell`][nspell], and others.
 
-Forked from the original to add a dictionary checker app – see `./dict-app`.
+Forked from the original to add a dictionary checker app – see the readme at [`./dict-app`](https://github.com/jonathonherbert/dictionaries/tree/main/dict-app).
 
 ## Install
 
