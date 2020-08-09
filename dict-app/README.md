@@ -2,7 +2,7 @@
 
 A utility to examine hunspell dictionaries. Search for words and see what's derived from their affix rules.
 
-![Hunspell rule search example](https://user-images.githubusercontent.com/7767575/89734064-90840a00-da51-11ea-9a17-bec621808d90.png)
+<img src="https://user-images.githubusercontent.com/7767575/89734064-90840a00-da51-11ea-9a17-bec621808d90.png" alt="Hunspell rule search example" width="640">
 
 Uses a modified version of [Typo.js](https://github.com/jonathonherbert/Typo.js) to get hold of derivations.
 
