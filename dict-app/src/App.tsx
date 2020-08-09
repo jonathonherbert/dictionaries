@@ -9,7 +9,7 @@ const aff = raw(`../../dictionaries/en-GB/index.aff`);
 const [count, ...lines] = dict.split("\n");
 const typo = new Typo("en_GB", aff, dict);
 
-type DictionaryEntry = { word: string; affChars: string[]; index: number };
+type DictionaryEntry = { word: string; affChars: string[]; lineNo: number };
 type AffixEntry = {
   type: string;
   key: string;
@@ -21,7 +21,8 @@ type AffixEntry = {
 const entries: DictionaryEntry[] = lines
   .map((entry, index) => {
     const [word, affChars] = entry.split("/");
-    return { word, affChars: (affChars || "").split(""), index };
+    // lineN + 2 – 0-index plus summary line in .dic file
+    return { word, affChars: (affChars || "").split(""), lineNo: index + 2 };
   })
   .filter(({ word }) => word);
 
@@ -99,7 +100,7 @@ function App() {
               onChange={(e) => setSearchStr(e.target.value)}
             ></input>
             {sortedEntries.slice(0, 10).map((entry) => (
-              <Word key={entry.index} {...entry} searchStr={searchStr} />
+              <Word key={entry.lineNo} {...entry} searchStr={searchStr} />
             ))}
           </div>
           <div className="col col-right">
@@ -121,7 +122,7 @@ function App() {
 function Word({
   word,
   affChars,
-  index,
+  lineNo: index,
   searchStr,
 }: DictionaryEntry & { searchStr: string }) {
   const [isOpen, setIsOpen] = useState(true);
@@ -137,10 +138,10 @@ function Word({
         <span className="Word__meta">
           &nbsp;/&nbsp;
           <span>{affChars.length ? `Affixes: ${affChars.join("")}, ` : ""}</span>
-          <span>L{index}</span>
+          <span>Line: {index}</span>
         </span>
       </p>
-      {isOpen && <div>{renderAffixesFromEntry({ word, affChars, index })}</div>}
+      {isOpen && <div>{renderAffixesFromEntry({ word, affChars, lineNo: index })}</div>}
     </div>
   );
 }
