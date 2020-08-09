@@ -2,7 +2,7 @@
 
 A utility to examine hunspell dictionaries. Search for words and see what's derived from their affix rules.
 
-<img src="https://user-images.githubusercontent.com/7767575/89734064-90840a00-da51-11ea-9a17-bec621808d90.png" alt="Hunspell rule search example" width="640">
+<img width="734" alt="Screenshot 2020-08-09 at 17 04 29" src="https://user-images.githubusercontent.com/7767575/89736669-f75def00-da62-11ea-9ed4-f11b378787d0.png">
 
 Change the dictionary variable referenced in `src/App.tsx` to swap dictionaries.
 
