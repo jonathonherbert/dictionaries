@@ -2,6 +2,8 @@
 
 A utility to examine hunspell dictionaries. Search for words and see what's derived from their affix rules.
 
+![Hunspell rule search example](https://user-images.githubusercontent.com/7767575/89733901-9a593d80-da50-11ea-91c2-d2541db058ee.png)
+
 Uses a modified version of [Typo.js](https://github.com/jonathonherbert/Typo.js) to get hold of derivations.
 
 ## Available Scripts
